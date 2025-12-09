@@ -63,7 +63,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pubflow/flowfull-client.git"
+    "url": "git+https://github.com/pubflow/flowfull-client.git"
   },
   "bugs": {
     "url": "https://github.com/pubflow/flowfull-client/issues"
@@ -81,7 +81,6 @@
       "optional": true
     }
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
@@ -94,6 +93,10 @@
     "vitest": "^1.0.4",
     "@vitest/ui": "^1.0.4",
     "@vitest/coverage-v8": "^1.0.4"
+  },
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
   }
 }
-
