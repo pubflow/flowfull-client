@@ -169,17 +169,80 @@ export interface RetryConfig {
    * @default 3
    */
   attempts?: number;
-  
+
   /**
    * Delay between retries in milliseconds
    * @default 1000
    */
   delay?: number;
-  
+
   /**
    * Whether to use exponential backoff
    * @default true
    */
   exponentialBackoff?: boolean;
+}
+
+/**
+ * File upload options
+ */
+export interface UploadFileOptions {
+  /**
+   * Form field name for the file
+   * @default 'file'
+   */
+  field?: string;
+
+  /**
+   * Additional form data to include
+   */
+  data?: Record<string, string | number | boolean>;
+
+  /**
+   * Custom headers for the upload request
+   * Useful for S3, B2, R2, Azure, etc.
+   */
+  headers?: Record<string, string>;
+
+  /**
+   * Progress callback (0-100)
+   */
+  onProgress?: (progress: number) => void;
+
+  /**
+   * Request timeout in milliseconds
+   */
+  timeout?: number;
+
+  /**
+   * Whether to include session header
+   * @default true
+   */
+  includeSession?: boolean;
+
+  /**
+   * AbortSignal for cancelling upload
+   */
+  signal?: AbortSignal;
+}
+
+/**
+ * Upload progress event
+ */
+export interface UploadProgress {
+  /**
+   * Bytes loaded
+   */
+  loaded: number;
+
+  /**
+   * Total bytes
+   */
+  total: number;
+
+  /**
+   * Progress percentage (0-100)
+   */
+  percentage: number;
 }
 

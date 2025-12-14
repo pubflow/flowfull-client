@@ -1,10 +1,10 @@
 /**
  * Session Manager
- * 
- * Manages session ID retrieval and storage
+ *
+ * Manages session ID retrieval and storage with multi-tenant support
  */
 
-import { SessionConfig } from '../types';
+import { SessionConfig, StorageAdapter } from '../types';
 import { autoDetectSessionId } from '../utils';
 
 /**
@@ -13,24 +13,48 @@ import { autoDetectSessionId } from '../utils';
 export class SessionManager {
   private config: SessionConfig;
   private cachedSessionId: string | null = null;
-  
+  private storage: StorageAdapter | null = null;
+  private storagePrefix: string = '';
+
   constructor(config: SessionConfig = {}) {
     this.config = {
       includeSession: true,
       sessionHeader: 'X-Session-ID',
       ...config
     };
+
+    // Setup storage with prefix support
+    if (config.storageConfig) {
+      this.storage = config.storageConfig.adapter || null;
+      this.storagePrefix = config.storageConfig.prefix || '';
+    } else if (config.storage) {
+      this.storage = config.storage;
+      this.storagePrefix = '';
+    }
+  }
+
+  /**
+   * Get storage key with prefix
+   *
+   * @param key - Base key name
+   * @returns Prefixed key
+   */
+  private getStorageKey(key: string): string {
+    if (this.storagePrefix) {
+      return `${this.storagePrefix}_${key}`;
+    }
+    return key;
   }
   
   /**
    * Get session ID
-   * 
+   *
    * Priority order:
    * 1. Static sessionId from config
    * 2. getSessionId() function from config
-   * 3. Storage adapter
+   * 3. Storage adapter (with prefix support)
    * 4. Auto-detect from common storage keys
-   * 
+   *
    * @returns Session ID or null
    */
   async getSessionId(): Promise<string | null> {
@@ -38,12 +62,12 @@ export class SessionManager {
     if (this.config.includeSession === false) {
       return null;
     }
-    
+
     // 1. Static session ID
     if (this.config.sessionId) {
       return this.config.sessionId;
     }
-    
+
     // 2. getSessionId function
     if (this.config.getSessionId) {
       const sessionId = await this.config.getSessionId();
@@ -51,11 +75,12 @@ export class SessionManager {
         return sessionId;
       }
     }
-    
-    // 3. Storage adapter
-    if (this.config.storage) {
+
+    // 3. Storage adapter (with prefix support)
+    if (this.storage) {
       try {
-        const sessionId = await this.config.storage.getItem('pubflow_session_id');
+        const key = this.getStorageKey('pubflow_session_id');
+        const sessionId = await this.storage.getItem(key);
         if (sessionId) {
           return sessionId;
         }
@@ -63,7 +88,7 @@ export class SessionManager {
         // Ignore storage errors
       }
     }
-    
+
     // 4. Auto-detect
     return this.autoDetectSession();
   }

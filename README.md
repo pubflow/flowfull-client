@@ -1,6 +1,6 @@
 # @pubflow/flowfull-client
 
-> Universal HTTP client for Flowfull backends with advanced query building, filter operators, and session management.
+> Universal HTTP client for Flowfull backends with advanced query building, filter operators, session management, multi-tenant support, and file uploads.
 
 [![npm version](https://img.shields.io/npm/v/@pubflow/flowfull-client.svg)](https://www.npmjs.com/package/@pubflow/flowfull-client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -9,7 +9,8 @@
 
 - ✅ **Extremely Developer-Friendly** - Chainable query builder with intuitive API
 - ✅ **14+ Filter Operators** - Comparison, string, array, null, and range operators
-- ✅ **Multiple Instances** - Connect to multiple Flowfull backends simultaneously
+- ✅ **Multi-Tenant Support** - Connect to multiple Flowfull backends with isolated storage
+- ✅ **File Upload** - Built-in file upload with progress tracking and custom headers
 - ✅ **Session Management** - Auto-detect or manual session handling
 - ✅ **TypeScript-First** - Full type safety with generics
 - ✅ **Universal** - Works with React, React Native, Next.js, and vanilla JS
@@ -142,17 +143,75 @@ const products = await api
 
 > **Note:** Both syntaxes generate the same bracket syntax `field[operator]=value` in the URL, which is compatible with @pubflow/bridge backend.
 
-### Multiple Instances
+### Multi-Tenant Support
+
+Connect to multiple Flowfull backends with isolated storage:
 
 ```typescript
-// Main API
-const mainApi = createFlowfull('https://api.myapp.com');
+// Tenant 1 with isolated storage
+const tenant1 = createFlowfull('https://tenant1.api.com', {
+  name: 'tenant1',
+  storageConfig: {
+    adapter: localStorage,
+    prefix: 'tenant1'  // Storage keys: tenant1_pubflow_session_id, tenant1_pubflow_user_data
+  }
+});
 
-// Analytics API
-const analyticsApi = createFlowfull('https://analytics.myapp.com');
+// Tenant 2 with isolated storage
+const tenant2 = createFlowfull('https://tenant2.api.com', {
+  name: 'tenant2',
+  storageConfig: {
+    adapter: localStorage,
+    prefix: 'tenant2'  // Storage keys: tenant2_pubflow_session_id, tenant2_pubflow_user_data
+  }
+});
 
-// Payments API
-const paymentsApi = createFlowfull('https://payments.myapp.com');
+// Each instance maintains separate sessions
+await tenant1.post('/auth/login', { email: 'user@tenant1.com', password: 'pass' });
+await tenant2.post('/auth/login', { email: 'user@tenant2.com', password: 'pass' });
+
+// Use independently
+const data1 = await tenant1.get('/data');
+const data2 = await tenant2.get('/data');
+```
+
+### File Upload
+
+Built-in file upload with progress tracking:
+
+```typescript
+// Simple upload
+const response = await api.uploadFile('/auth/upload/picture', imageFile, {
+  field: 'picture'
+});
+
+// With progress tracking
+const response = await api.uploadFile('/upload', file, {
+  field: 'document',
+  onProgress: (progress) => {
+    console.log(`Upload progress: ${progress}%`);
+  },
+  data: {
+    title: 'My Document',
+    category: 'reports'
+  }
+});
+
+// S3 direct upload with custom headers
+const response = await api.uploadFile(presignedUrl, file, {
+  headers: {
+    'x-amz-acl': 'public-read',
+    'x-amz-meta-user-id': 'user123'
+  }
+});
+
+// Backblaze B2 upload
+const response = await api.uploadFile(b2UploadUrl, file, {
+  headers: {
+    'X-Bz-File-Name': 'document.pdf',
+    'X-Bz-Content-Type': 'application/pdf'
+  }
+});
 ```
 
 ### Session Management
