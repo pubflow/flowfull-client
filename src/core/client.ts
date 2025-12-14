@@ -18,6 +18,7 @@ import { buildURL, buildQueryString } from '../utils';
 import { SessionManager } from './session-manager';
 import { RequestHandler } from './request-handler';
 import { QueryBuilder } from './query-builder';
+import { PaymentsHelper } from '../helpers/payments';
 
 /**
  * Flowfull client class
@@ -60,11 +61,42 @@ export class FlowfullClient {
   }
   
   /**
+   * Payments API helper
+   *
+   * Provides clean interface for Bridge Payments endpoints
+   *
+   * @returns Payments helper instance
+   *
+   * @example
+   * ```typescript
+   * // Create payment intent
+   * const intent = await api.pay.createIntent({
+   *   total_cents: 9999,
+   *   currency: 'USD',
+   *   provider_id: 'stripe_main'
+   * });
+   *
+   * // List payment methods
+   * const methods = await api.pay.listMethods();
+   *
+   * // Create subscription
+   * const sub = await api.pay.createSubscription({
+   *   customer_id: 'cus_abc123',
+   *   payment_method_id: 'pm_abc123',
+   *   product_id: 'prod_premium'
+   * });
+   * ```
+   */
+  get pay(): PaymentsHelper {
+    return new PaymentsHelper(this);
+  }
+
+  /**
    * Create query builder
-   * 
+   *
    * @param endpoint - API endpoint
    * @returns Query builder instance
-   * 
+   *
    * @example
    * ```typescript
    * const users = await client

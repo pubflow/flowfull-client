@@ -24,12 +24,20 @@ Flowfull Client is a **developer-friendly, type-safe HTTP client** designed spec
 ### Getting Started
 - **[Getting Started](./getting-started.md)** - Quick start guide and basic usage
 - **[Installation](./getting-started.md#installation)** - How to install the package
+- **[Response Handling](./response-handling.md)** ⭐ **NEW** - How to access and use API response values
 
 ### Core Concepts
 - **[Filter Operators](./filter-operators.md)** - Complete guide to all 14 filter operators
 - **[Query Builder](./query-builder.md)** - Master the chainable query builder API
 - **[Configuration](./configuration.md)** - Configure your client for your needs
 - **[Error Handling](./error-handling.md)** - Handle errors like a pro
+
+### Payments API 💳
+- **[Payments API Universal](../PAYMENTS-API-UNIVERSAL.md)** ⭐ **NEW** - Complete reference for all 33 payment methods
+- **[React Payments](./react-payments.md)** ⭐ **NEW** - Payment integration for React apps
+- **[React Native Payments](./react-native-payments.md)** ⭐ **NEW** - Payment integration for React Native/Expo apps
+- **[Next.js Payments](./nextjs-payments.md)** ⭐ **NEW** - Payment integration for Next.js apps
+- **[Payments Examples](../examples/payments-example.ts)** ⭐ **NEW** - 6 complete usage scenarios
 
 ### Platform-Specific Guides
 - **[React Native](./react-native.md)** - Using Flowfull Client in React Native/Expo apps
@@ -41,8 +49,8 @@ Flowfull Client is a **developer-friendly, type-safe HTTP client** designed spec
 - **[Full-Stack Examples](./full-stack-examples.md)** - Complete frontend + backend integration examples
 
 ### Advanced Topics
-- **[Advanced Features](./advanced-features.md)** ⭐ **NEW** - Universal API compatibility, platform detection, sessionless requests
-- **[Future Features](./future-features.md)** ⭐ **NEW** - Roadmap and upcoming features (cache, file upload, offline support)
+- **[Advanced Features](./advanced-features.md)** - Universal API compatibility, platform detection, sessionless requests
+- **[Future Features](./future-features.md)** - Roadmap and upcoming features (cache, file upload, offline support)
 - **[TypeScript](./typescript.md)** - Get the most out of TypeScript (coming soon)
 - **[Session Management](./session-management.md)** - Advanced session management patterns (coming soon)
 - **[Interceptors](./interceptors.md)** - Customize requests and responses (coming soon)

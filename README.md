@@ -11,6 +11,7 @@
 - ✅ **14+ Filter Operators** - Comparison, string, array, null, and range operators
 - ✅ **Multi-Tenant Support** - Connect to multiple Flowfull backends with isolated storage
 - ✅ **File Upload** - Built-in file upload with progress tracking and custom headers
+- ✅ **Payments API** - Clean interface for Bridge Payments with 33 methods
 - ✅ **Session Management** - Auto-detect or manual session handling
 - ✅ **TypeScript-First** - Full type safety with generics
 - ✅ **Universal** - Works with React, React Native, Next.js, and vanilla JS
@@ -61,14 +62,21 @@ const products = await api
 
 ### Getting Started
 - **[Getting Started Guide](./docs/getting-started.md)** - Complete beginner's guide
-- **[Universal Filter Syntax](../UNIVERSAL-FILTER-SYNTAX.md)** ⭐ **NEW** - Bracket syntax standard across all Flowfull clients
+- **[Response Handling Guide](./docs/response-handling.md)** ⭐ **NEW** - How to access and use API response values
+- **[Universal Filter Syntax](../UNIVERSAL-FILTER-SYNTAX.md)** - Bracket syntax standard across all Flowfull clients
 - **[Filter Operators](./docs/filter-operators.md)** - All 14+ operators explained with examples
 - **[Query Builder](./docs/query-builder.md)** - Master the chainable API
 - **[Configuration](./docs/configuration.md)** - Configure your client
 
+### Payments API 💳
+- **[Payments API Universal](../PAYMENTS-API-UNIVERSAL.md)** ⭐ **NEW** - Complete API reference for all 33 payment methods
+- **[React Payments](./docs/react-payments.md)** ⭐ **NEW** - Payment integration for React apps
+- **[React Native Payments](./docs/react-native-payments.md)** ⭐ **NEW** - Payment integration for React Native/Expo apps
+- **[Next.js Payments](./docs/nextjs-payments.md)** ⭐ **NEW** - Payment integration for Next.js apps (App Router & Pages Router)
+
 ### Advanced Features
-- **[Advanced Features](./docs/advanced-features.md)** ⭐ **NEW** - Universal API compatibility, platform detection, sessionless requests
-- **[Future Features](./docs/future-features.md)** ⭐ **NEW** - Roadmap: cache, file upload, offline support, batch requests
+- **[Advanced Features](./docs/advanced-features.md)** - Universal API compatibility, platform detection, sessionless requests
+- **[Future Features](./docs/future-features.md)** - Roadmap: cache, file upload, offline support, batch requests
 
 ### Platform Guides
 - **[React Native](./docs/react-native.md)** - Mobile app integration (Expo/RN)
@@ -213,6 +221,43 @@ const response = await api.uploadFile(b2UploadUrl, file, {
   }
 });
 ```
+
+### Payments API
+
+```typescript
+// Create payment intent
+const intent = await api.pay.createIntent({
+  total_cents: 9999,  // $99.99
+  currency: 'USD',
+  provider_id: 'stripe_main',
+  description: 'Order #12345'
+});
+
+// List payment methods
+const methods = await api.pay.listMethods();
+
+// Create subscription
+const subscription = await api.pay.createSubscription({
+  customer_id: 'cus_abc123',
+  payment_method_id: 'pm_abc123',
+  product_id: 'prod_premium',
+  trial_days: 14
+});
+
+// Manage organizations
+const org = await api.pay.createOrganization({
+  name: 'Acme Corp',
+  business_email: 'billing@acme.com'
+});
+
+// Add team members
+await api.pay.addOrgMember(org.data.id, {
+  email: 'admin@acme.com',
+  role: 'admin'
+});
+```
+
+See [PAYMENTS-API-UNIVERSAL.md](../PAYMENTS-API-UNIVERSAL.md) for complete documentation of all 33 payment methods.
 
 ### Session Management
 

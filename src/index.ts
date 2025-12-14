@@ -46,6 +46,9 @@ export { QueryBuilder } from './core/query-builder';
 export { SessionManager } from './core/session-manager';
 export { RequestHandler } from './core/request-handler';
 
+// Helpers
+export { PaymentsHelper } from './helpers/payments';
+
 // Factory
 export { createFlowfull } from './factory';
 
