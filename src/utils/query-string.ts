@@ -30,112 +30,134 @@ export function encodeQueryValue(value: any): string {
 
 /**
  * Build filter query params
- * 
+ *
+ * Uses bracket syntax: field[operator]=value (compatible with @pubflow/bridge)
+ *
  * @param filters - Array of filter definitions
  * @returns Query params object
  */
 export function buildFilterParams(filters: FilterDefinition[]): Record<string, any> {
   const params: Record<string, any> = {};
-  
+
   for (const filter of filters) {
     const { field, operator, value } = filter;
-    
-    // Handle different operators
+
+    // Handle different operators using bracket syntax
     switch (operator) {
       case FilterOperator.EQUALS:
       case 'eq':
+        // Special case: equals doesn't need operator suffix
         params[field] = value;
         break;
-        
+
       case FilterOperator.NOT_EQUALS:
       case 'ne':
-        params[`${field}_ne`] = value;
+        params[`${field}[ne]`] = value;
         break;
-        
+
       case FilterOperator.GREATER_THAN:
       case 'gt':
-        params[`${field}_gt`] = value;
+        params[`${field}[gt]`] = value;
         break;
-        
+
       case FilterOperator.GREATER_THAN_OR_EQUALS:
       case 'gte':
-        params[`${field}_gte`] = value;
+        params[`${field}[gte]`] = value;
         break;
-        
+
       case FilterOperator.LESS_THAN:
       case 'lt':
-        params[`${field}_lt`] = value;
+        params[`${field}[lt]`] = value;
         break;
-        
+
       case FilterOperator.LESS_THAN_OR_EQUALS:
       case 'lte':
-        params[`${field}_lte`] = value;
+        params[`${field}[lte]`] = value;
         break;
-        
+
       case FilterOperator.LIKE:
       case 'like':
-        params[`${field}_like`] = value;
+        params[`${field}[like]`] = value;
         break;
-        
+
       case FilterOperator.ILIKE:
       case 'ilike':
-        params[`${field}_ilike`] = value;
+        params[`${field}[ilike]`] = value;
         break;
-        
+
       case FilterOperator.STARTS_WITH:
       case 'sw':
+        params[`${field}[startsWith]`] = value;
+        break;
+
       case 'startsWith':
-        params[`${field}_sw`] = value;
+        params[`${field}[startsWith]`] = value;
         break;
 
       case FilterOperator.ENDS_WITH:
       case 'ew':
-      case 'endsWith':
-        params[`${field}_ew`] = value;
+        params[`${field}[endsWith]`] = value;
         break;
-        
+
+      case 'endsWith':
+        params[`${field}[endsWith]`] = value;
+        break;
+
       case FilterOperator.IN:
       case 'in':
-        params[`${field}_in`] = Array.isArray(value) ? value.join(',') : value;
+        params[`${field}[in]`] = Array.isArray(value) ? value.join(',') : value;
         break;
-        
+
       case FilterOperator.NOT_IN:
       case 'nin':
-        params[`${field}_nin`] = Array.isArray(value) ? value.join(',') : value;
+        params[`${field}[nin]`] = Array.isArray(value) ? value.join(',') : value;
         break;
-        
+
       case FilterOperator.IS_NULL:
       case 'null':
-        params[`${field}_null`] = true;
+        params[`${field}[null]`] = true;
         break;
-        
+
       case FilterOperator.IS_NOT_NULL:
       case 'nnull':
-        params[`${field}_nnull`] = true;
+        params[`${field}[notNull]`] = true;
         break;
-        
+
+      case 'notNull':
+        params[`${field}[notNull]`] = true;
+        break;
+
       case FilterOperator.BETWEEN:
       case 'between':
         if (Array.isArray(value) && value.length === 2) {
-          params[`${field}_min`] = value[0];
-          params[`${field}_max`] = value[1];
+          params[`${field}[between]`] = `${value[0]},${value[1]}`;
         }
         break;
-        
+
       case FilterOperator.NOT_BETWEEN:
       case 'nbetween':
         if (Array.isArray(value) && value.length === 2) {
-          params[`${field}_nmin`] = value[0];
-          params[`${field}_nmax`] = value[1];
+          params[`${field}[notBetween]`] = `${value[0]},${value[1]}`;
         }
         break;
-        
+
+      case 'notBetween':
+        if (Array.isArray(value) && value.length === 2) {
+          params[`${field}[notBetween]`] = `${value[0]},${value[1]}`;
+        }
+        break;
+
+      // @pubflow/bridge compatibility - contains is an alias for like
+      case 'contains':
+        params[`${field}[contains]`] = value;
+        break;
+
       default:
-        // Custom operator - use as suffix
-        params[`${field}_${operator}`] = value;
+        // Custom operator - use bracket syntax
+        params[`${field}[${operator}]`] = value;
     }
   }
-  
+
   return params;
 }
 

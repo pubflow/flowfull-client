@@ -216,6 +216,58 @@ api.query('/users')
   .get();
 ```
 
+### Bracket Syntax (Auto-Detected Filters)
+
+The `.param()` method **automatically detects** bracket syntax `field[operator]=value` and converts it to filters:
+
+```typescript
+// ✅ Using bracket syntax (auto-detected as filters)
+api.query('/products')
+  .param('category[in]', 'electronics,computers')
+  .param('price[gte]', 100)
+  .param('price[lte]', 1000)
+  .get();
+
+// ✅ Equivalent using .where() with helper functions
+import { inOp, gte, lte } from '@pubflow/flowfull-client';
+
+api.query('/products')
+  .where('category', inOp(['electronics', 'computers']))
+  .where('price', gte(100))
+  .where('price', lte(1000))
+  .get();
+
+// Both generate the same URL:
+// /products?category[in]=electronics,computers&price[gte]=100&price[lte]=1000
+```
+
+**Supported bracket operators:**
+- `field[eq]=value` - Equals (or just `field=value`)
+- `field[ne]=value` - Not equals
+- `field[gt]=value` - Greater than
+- `field[gte]=value` - Greater than or equals
+- `field[lt]=value` - Less than
+- `field[lte]=value` - Less than or equals
+- `field[like]=value` - Contains (case-sensitive)
+- `field[ilike]=value` - Contains (case-insensitive)
+- `field[contains]=value` - Alias for `like`
+- `field[startsWith]=value` - Starts with
+- `field[endsWith]=value` - Ends with
+- `field[in]=value1,value2` - In array
+- `field[nin]=value1,value2` - Not in array
+- `field[null]=true` - Is null
+- `field[notNull]=true` - Is not null
+- `field[between]=min,max` - Between two values
+- `field[notBetween]=min,max` - Not between two values
+
+**Why bracket syntax?**
+- ✅ **Compatible with @pubflow/bridge** backend
+- ✅ **Industry standard** (Laravel, Rails, PostgREST)
+- ✅ **Clear separation** between field names and operators
+- ✅ **Universal** across all Flowfull clients (TypeScript, Go, Python, Dart, .NET)
+
+See [Universal Filter Syntax](../../UNIVERSAL-FILTER-SYNTAX.md) for more details.
+
 ---
 
 ## 📋 Custom Headers

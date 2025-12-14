@@ -191,14 +191,65 @@ export class QueryBuilder {
   
   /**
    * Add custom parameter
-   * 
-   * @param key - Parameter key
+   *
+   * Supports bracket syntax for filters: field[operator]=value
+   *
+   * @param key - Parameter key (supports bracket syntax like 'age[gte]')
    * @param value - Parameter value
    * @returns Query builder instance (chainable)
+   *
+   * @example
+   * ```typescript
+   * // Bracket syntax (auto-detected as filter)
+   * query.param('age[gte]', 18)
+   * query.param('category[in]', 'electronics,computers')
+   *
+   * // Plain parameter
+   * query.param('include', 'profile')
+   * query.param('fields', 'id,name,email')
+   * ```
    */
   param(key: string, value: any): this {
+    // Pattern: Bracket syntax - field[operator]
+    const bracketMatch = key.match(/^(.+)\[(.+)\]$/);
+
+    if (bracketMatch) {
+      const [, field, operator] = bracketMatch;
+
+      // Convert @pubflow/bridge operator names to internal operator names
+      const internalOp = this.convertBridgeOperator(operator);
+
+      // Add as filter using .where()
+      this.where(field, internalOp, value);
+      return this;
+    }
+
+    // Plain parameter - add to customParams
     this.customParams[key] = value;
     return this;
+  }
+
+  /**
+   * Convert @pubflow/bridge operator names to internal operator names
+   *
+   * @param operator - Bridge operator name
+   * @returns Internal operator name
+   * @private
+   */
+  private convertBridgeOperator(operator: string): string {
+    // Mapping from @pubflow/bridge syntax to internal operators
+    const mapping: Record<string, string> = {
+      // Bridge uses full names, we use short codes internally
+      'contains': 'like',
+      'startsWith': 'sw',
+      'endsWith': 'ew',
+      'notNull': 'nnull',
+      'notBetween': 'nbetween',
+      'notIn': 'nin',
+      // All others remain the same (eq, ne, gt, gte, lt, lte, in, like, ilike, null, between)
+    };
+
+    return mapping[operator] || operator;
   }
   
   /**

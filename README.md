@@ -60,7 +60,8 @@ const products = await api
 
 ### Getting Started
 - **[Getting Started Guide](./docs/getting-started.md)** - Complete beginner's guide
-- **[Filter Operators](./docs/filter-operators.md)** - All 14 operators explained with examples
+- **[Universal Filter Syntax](../UNIVERSAL-FILTER-SYNTAX.md)** ⭐ **NEW** - Bracket syntax standard across all Flowfull clients
+- **[Filter Operators](./docs/filter-operators.md)** - All 14+ operators explained with examples
 - **[Query Builder](./docs/query-builder.md)** - Master the chainable API
 - **[Configuration](./docs/configuration.md)** - Configure your client
 
@@ -98,23 +99,48 @@ const users = await api
 
 ### Filter Operators
 
+**Bracket Syntax** (Universal Standard):
 ```typescript
-import { eq, gte, between, inOp, isNotNull } from '@pubflow/flowfull-client';
+// ✅ Using bracket syntax with .param() - auto-detected as filters
+const products = await api
+  .query('/products')
+  .param('category[in]', 'electronics,computers')
+  .param('price[gte]', 100)
+  .param('price[lte]', 1000)
+  .param('stock[gt]', 0)
+  .get();
 
-// Comparison
-.where('age', gte(18))
-.where('price', between(10, 100))
-
-// String
-.where('name', like('john'))
-.where('email', endsWith('@gmail.com'))
-
-// Array
-.where('status', inOp(['active', 'pending']))
-
-// Null
-.where('email_verified_at', isNotNull())
+// Generated URL: /products?category[in]=electronics,computers&price[gte]=100&price[lte]=1000&stock[gt]=0
 ```
+
+**Helper Functions** (Type-Safe):
+```typescript
+import { eq, gte, lte, gt, between, inOp, isNotNull } from '@pubflow/flowfull-client';
+
+// ✅ Using helper functions with .where() - type-safe
+const products = await api
+  .query('/products')
+  .where('category', inOp(['electronics', 'computers']))
+  .where('price', gte(100))
+  .where('price', lte(1000))
+  .where('stock', gt(0))
+  .get();
+
+// Generated URL: /products?category[in]=electronics,computers&price[gte]=100&price[lte]=1000&stock[gt]=0
+```
+
+**Mix Both** (Flexible):
+```typescript
+// ✅ Combine bracket syntax and helper functions
+const products = await api
+  .query('/products')
+  .param('category[in]', 'electronics,computers')  // Bracket syntax
+  .where('price', gte(100))                        // Helper function
+  .param('include', 'images')                      // Plain param
+  .get();
+```
+
+> **Note:** Both syntaxes generate the same bracket syntax `field[operator]=value` in the URL, which is compatible with @pubflow/bridge backend.
 
 ### Multiple Instances
 
@@ -185,7 +211,7 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 ## 📄 License
 
-MIT © [Pubflow Team](https://github.com/pubflow)
+AGPL-3.0 © [Pubflow Team](https://github.com/pubflow)
 
 ## 🔗 Related Packages
 
