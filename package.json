@@ -1,6 +1,6 @@
 {
   "name": "@pubflow/flowfull-client",
-  "version": "0.2.0",
+  "version": "0.2.5",
   "description": "Universal HTTP client for Flowfull backends with advanced query building, filter operators, and session management",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -59,8 +59,16 @@
     "nextjs",
     "typescript"
   ],
-  "author": "Pubflow Team",
-  "license": "AGPL-3.0-or-later",
+  "author": {
+    "name": "Pubflow, Inc.",
+    "email": "enterprise@pubflow.com",
+    "url": "https://pubflow.com"
+  },
+  "license": "AGPL-3.0-only",
+  "funding": {
+    "type": "commercial",
+    "url": "https://pubflow.com/dual-licensing"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pubflow/flowfull-client.git"
@@ -68,7 +76,7 @@
   "bugs": {
     "url": "https://github.com/pubflow/flowfull-client/issues"
   },
-  "homepage": "https://github.com/pubflow/flowfull-client#readme",
+  "homepage": "https://pubflow.com",
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-native": ">=0.60.0"

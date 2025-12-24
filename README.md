@@ -3,7 +3,7 @@
 > Universal HTTP client for Flowfull backends with advanced query building, filter operators, session management, multi-tenant support, and file uploads.
 
 [![npm version](https://img.shields.io/npm/v/@pubflow/flowfull-client.svg)](https://www.npmjs.com/package/@pubflow/flowfull-client)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 
 ## 🚀 Features
 
@@ -315,7 +315,28 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 ## 📄 License
 
-AGPL-3.0 © [Pubflow Team](https://github.com/pubflow)
+**@pubflow/flowfull-client** is licensed under the **AGPL-3.0-only** open source license.
+
+### What does this mean?
+
+- ✅ **Free to use** - Use commercially without paying anything
+- ✅ **Modify freely** - Change the code as needed
+- ✅ **Distribute** - Share with others
+- ⚠️ **Share modifications** - If you modify and offer as a web service, you must release your changes
+- ⚠️ **Same license** - Derivative works must use AGPL-3.0
+
+### Commercial License Available
+
+For organizations that cannot comply with AGPL-3.0 or need:
+- 💼 Keep modifications private
+- 🛡️ Legal indemnification
+- 🎯 Enterprise support and SLA
+- 🚀 Custom features
+
+**Contact:** enterprise@pubflow.com
+**Learn more:** https://pubflow.com/dual-licensing
+
+See [LICENSE](./LICENSE) for full details.
 
 ## 🔗 Related Packages
 
@@ -323,4 +344,10 @@ AGPL-3.0 © [Pubflow Team](https://github.com/pubflow)
 - [@pubflow/react](https://www.npmjs.com/package/@pubflow/react) - React integration
 - [@pubflow/react-native](https://www.npmjs.com/package/@pubflow/react-native) - React Native integration
 - [@pubflow/nextjs](https://www.npmjs.com/package/@pubflow/nextjs) - Next.js integration
+- [Commercial License](https://pubflow.com/dual-licensing) - Dual licensing options
+
+---
+
+**Copyright © 2024-present Pubflow, Inc.**
+**SPDX-License-Identifier:** AGPL-3.0-only
 
