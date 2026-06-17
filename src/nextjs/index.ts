@@ -1,11 +1,14 @@
 /**
  * Next.js Client Integration
- * 
- * Next.js client components and hooks for Flowfull client
- * 
- * @todo Implement in Phase 4
+ *
+ * Client-side helpers for Next.js apps. Server utilities are exported from
+ * @pubflow/flowfull-client/nextjs/server.
  */
 
-// Placeholder - will be implemented in Phase 4
-export {};
-
+export {
+  createPubflowFlowfullClient,
+  useFlowfullClient,
+  getPubflowSessionId,
+  createBrowserStorageAdapter,
+} from '../react';
+export type { UseFlowfullClientOptions } from '../react';

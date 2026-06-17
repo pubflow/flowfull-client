@@ -633,13 +633,13 @@ Make sure your database has indexes on commonly filtered/sorted fields:
 
 ```sql
 -- Add indexes for better performance
-CREATE INDEX idx_products_status ON products(status);
-CREATE INDEX idx_products_price ON products(price);
-CREATE INDEX idx_products_created_at ON products(created_at);
-CREATE INDEX idx_products_category ON products(category);
+CREATE INDEX IF NOT EXIST idx_products_status ON products(status);
+CREATE INDEX IF NOT EXIST idx_products_price ON products(price);
+CREATE INDEX IF NOT EXIST idx_products_created_at ON products(created_at);
+CREATE INDEX IF NOT EXIST idx_products_category ON products(category);
 
 -- Full-text search index
-CREATE INDEX idx_products_search ON products USING GIN(to_tsvector('english', name || ' ' || description));
+CREATE INDEX IF NOT EXIST idx_products_search ON products USING GIN(to_tsvector('english', name || ' ' || description));
 ```
 
 ### 5. **Cache Count Queries**

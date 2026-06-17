@@ -52,6 +52,9 @@ export { PaymentsHelper } from './helpers/payments';
 // Factory
 export { createFlowfull } from './factory';
 
+// Session helpers
+export { PUBFLOW_SESSION_KEYS, getPubflowSessionId, createBrowserStorageAdapter } from './session';
+
 // Types
 export * from './types';
 
@@ -60,4 +63,3 @@ export * from './operators';
 
 // Utils
 export * from './utils';
-
