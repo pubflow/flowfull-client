@@ -168,13 +168,20 @@ export class RequestHandler {
    * @returns API response
    */
   private async parseResponse<T>(response: Response): Promise<ApiResponse<T>> {
+    const text = await response.text();
     let data: any;
-    
+
     try {
-      const text = await response.text();
       data = text ? JSON.parse(text) : {};
     } catch (error) {
-      data = {};
+      if (!response.ok) {
+        return handleHttpError<T>(response, { error: text || 'Request failed' });
+      }
+      return {
+        success: true,
+        data: text as T,
+        status: response.status,
+      };
     }
     
     // Handle error responses
