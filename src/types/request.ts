@@ -78,6 +78,19 @@ export interface ApiResponse<T = any> {
    * Pagination metadata
    */
   meta?: PaginationMeta;
+
+  /**
+   * Viewer/session context from modern Flowless/Pubflow envelopes.
+   */
+  userContext?: {
+    authenticated: boolean;
+    provider?: string;
+    user_id?: string;
+    user_type?: string;
+    user_email?: string;
+    name?: string;
+    [key: string]: any;
+  };
 }
 
 /**
@@ -245,4 +258,3 @@ export interface UploadProgress {
    */
   percentage: number;
 }
-

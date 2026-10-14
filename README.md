@@ -62,6 +62,8 @@ const products = await api
 
 ### Getting Started
 - **[Getting Started Guide](./docs/getting-started.md)** - Complete beginner's guide
+- **[Complete Route Coverage](./docs/complete-route-coverage.md)** - Bridge Payments and Ultra Forms route matrix
+- **[Multi-Backend Modules](./docs/multi-backend-modules.md)** - Separate Flowless, Bridge Payments, and Ultra Forms hosts
 - **[Response Handling Guide](./docs/response-handling.md)** ⭐ **NEW** - How to access and use API response values
 - **[Universal Filter Syntax](../UNIVERSAL-FILTER-SYNTAX.md)** - Bracket syntax standard across all Flowfull clients
 - **[Filter Operators](./docs/filter-operators.md)** - All 14+ operators explained with examples
@@ -350,4 +352,3 @@ See [LICENSE](./LICENSE) for full details.
 
 **Copyright © 2024-present Pubflow, Inc.**
 **SPDX-License-Identifier:** AGPL-3.0-only
-

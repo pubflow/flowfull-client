@@ -48,6 +48,9 @@ export { RequestHandler } from './core/request-handler';
 
 // Helpers
 export { PaymentsHelper } from './helpers/payments';
+export { FormsHelper } from './helpers/forms';
+export { BlogHelper } from './helpers/blog';
+export { OnboardingHelper } from './helpers/onboarding';
 
 // Factory
 export { createFlowfull } from './factory';

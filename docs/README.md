@@ -30,6 +30,7 @@ Flowfull Client is a **developer-friendly, type-safe HTTP client** designed spec
 - **[Filter Operators](./filter-operators.md)** - Complete guide to all 14 filter operators
 - **[Query Builder](./query-builder.md)** - Master the chainable query builder API
 - **[Configuration](./configuration.md)** - Configure your client for your needs
+- **[Multi-Backend Modules](./multi-backend-modules.md)** - Bridge Payments, Ultra Forms, Blog, and Onboarding helpers
 - **[Error Handling](./error-handling.md)** - Handle errors like a pro
 
 ### Payments API 💳
@@ -304,4 +305,3 @@ MIT License - see [LICENSE](../LICENSE) for details.
 ---
 
 **Ready to get started?** → [Getting Started Guide](./getting-started.md)
-

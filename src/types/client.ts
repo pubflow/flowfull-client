@@ -106,6 +106,26 @@ export interface FlowfullConfig {
   retryAttempts?: number;
 
   /**
+   * Optional backend hosts. Use these when Flowless, Bridge Payments, and Ultra Forms
+   * are deployed independently.
+   */
+  apiUrl?: string;
+  paymentsUrl?: string;
+  formsUrl?: string;
+  flowlessUrl?: string;
+
+  /**
+   * Route prefixes for mounted backends/modules.
+   */
+  modulePrefixes?: {
+    payments?: string;
+    forms?: string;
+    blog?: string;
+    postTypes?: string;
+    onboarding?: string;
+  };
+
+  /**
    * Callbacks
    */
   onError?: (error: Error) => void;
@@ -122,4 +142,3 @@ export type RequestInterceptor = (config: RequestConfig) => RequestConfig | Prom
  * Response interceptor function
  */
 export type ResponseInterceptor = (response: ApiResponse) => ApiResponse | Promise<ApiResponse>;
-

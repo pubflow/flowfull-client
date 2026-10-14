@@ -185,10 +185,11 @@ export class RequestHandler {
     // Success response
     return {
       success: true,
-      data: data as T,
+      data: data && typeof data === 'object' && 'data' in data ? data.data as T : data as T,
       message: data.message,
       status: response.status,
-      meta: data.meta || data.pagination
+      meta: data.meta || data.pagination,
+      userContext: data.user_context
     };
   }
   
@@ -217,4 +218,3 @@ export class RequestHandler {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
-

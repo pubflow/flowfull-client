@@ -1,11 +1,42 @@
 /**
  * React Native Integration
- * 
- * React Native hooks and components for Flowfull client
- * 
- * @todo Implement in Phase 3
+ *
+ * Lightweight helpers for using the universal Flowfull client in React Native.
+ * Storage is injected by the app so this subpath works with AsyncStorage,
+ * SecureStore wrappers, or any custom adapter.
  */
 
-// Placeholder - will be implemented in Phase 3
-export {};
+import { useMemo } from 'react';
+import { createFlowfull } from '../factory';
+import type { FlowfullClient } from '../core/client';
+import type { FlowfullConfig, StorageAdapter } from '../types';
 
+export interface ReactNativeFlowfullOptions extends FlowfullConfig {
+  storage?: StorageAdapter;
+}
+
+export function createReactNativeFlowfullClient(
+  baseUrl: string,
+  config: ReactNativeFlowfullOptions = {}
+): FlowfullClient {
+  return createFlowfull(baseUrl, config);
+}
+
+export function useReactNativeFlowfullClient(
+  baseUrl: string,
+  config: ReactNativeFlowfullOptions = {}
+): FlowfullClient {
+  return useMemo(
+    () => createReactNativeFlowfullClient(baseUrl, config),
+    [
+      baseUrl,
+      config.sessionId,
+      config.includeSession,
+      config.sessionHeader,
+      config.timeout,
+      config.retryAttempts,
+      config.storage,
+      config.getSessionId,
+    ]
+  );
+}

@@ -1,612 +1,456 @@
-/**
- * Payments Helper
- * 
- * Provides clean interface for Bridge Payments API
- * This is syntactic sugar over standard HTTP requests to /bridge-payment/* endpoints
- */
-
 import type { FlowfullClient } from '../core/client';
 import type {
-  CreatePaymentIntentRequest,
-  PaymentIntent,
-  Payment,
-  PaymentMethod,
-  UpdatePaymentMethodRequest,
-  Address,
-  CreateAddressRequest,
-  UpdateAddressRequest,
-  Customer,
-  CreateCustomerRequest,
-  UpdateCustomerRequest,
-  Subscription,
-  CreateSubscriptionRequest,
+  ApiResponse,
   CancelSubscriptionRequest,
-  Organization,
+  CreateAddressRequest,
+  CreateCustomerRequest,
   CreateOrganizationRequest,
+  CreatePaymentIntentRequest,
+  CreateSubscriptionRequest,
+  PaginationParams,
+  UpdateAddressRequest,
+  UpdateCustomerRequest,
   UpdateOrganizationRequest,
-  OrganizationMember,
+  UpdatePaymentMethodRequest,
   AddOrganizationMemberRequest,
   UpdateOrganizationMemberRoleRequest,
   ConvertGuestToUserRequest,
   ConvertGuestToUserResponse,
-  PaginationParams,
-  ApiResponse
+  Address,
+  Customer,
+  Organization,
+  OrganizationMember,
+  Payment,
+  PaymentIntent,
+  PaymentMethod,
+  Subscription
 } from '../types';
 
-/**
- * Payments API Helper
- * 
- * Provides a clean, intuitive interface for Bridge Payments API
- */
 export class PaymentsHelper {
-  constructor(private client: FlowfullClient) {}
+  private readonly prefix: string;
 
-  // ============================================================================
-  // PAYMENT INTENTS
-  // ============================================================================
-
-  /**
-   * Create a payment intent
-   * 
-   * @param data - Payment intent data
-   * @returns Payment intent
-   * 
-   * @example
-   * ```typescript
-   * const intent = await api.pay.createIntent({
-   *   total_cents: 9999,
-   *   currency: 'USD',
-   *   provider_id: 'stripe_main'
-   * });
-   * ```
-   */
-  async createIntent(data: CreatePaymentIntentRequest): Promise<ApiResponse<PaymentIntent>> {
-    return this.client.post<PaymentIntent>('/bridge-payment/payments/intents', data);
+  constructor(private client: FlowfullClient, prefix = '/bridge-payment') {
+    this.prefix = prefix;
   }
 
-  /**
-   * Get payment intent by ID
-   * 
-   * @param id - Payment intent ID
-   * @returns Payment intent
-   * 
-   * @example
-   * ```typescript
-   * const intent = await api.pay.getIntent('intent_abc123');
-   * ```
-   */
-  async getIntent(id: string): Promise<ApiResponse<PaymentIntent>> {
-    return this.client.get<PaymentIntent>(`/bridge-payment/payments/intents/${id}`);
+  private path(path = ''): string {
+    const cleanPrefix = `/${this.prefix}`.replace(/\/+/g, '/').replace(/\/$/, '');
+    const cleanPath = path ? `/${path}`.replace(/\/+/g, '/') : '';
+    return `${cleanPrefix}${cleanPath}`;
   }
 
-  // ============================================================================
-  // PAYMENTS
-  // ============================================================================
-
-  /**
-   * List payments
-   * 
-   * @param params - Pagination parameters
-   * @returns List of payments
-   * 
-   * @example
-   * ```typescript
-   * const payments = await api.pay.listPayments({ page: 1, limit: 10 });
-   * ```
-   */
-  async listPayments(params?: PaginationParams): Promise<ApiResponse<Payment[]>> {
-    return this.client.get<Payment[]>('/bridge-payment/payments', { params });
+  private url(path: string, params?: PaginationParams): string {
+    const query = new URLSearchParams();
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) query.set(key, String(value));
+    });
+    const base = `${this.client.getBaseUrl().replace(/\/+$/, '')}${this.path(path)}`;
+    const suffix = query.toString();
+    return suffix ? `${base}?${suffix}` : base;
   }
 
-  /**
-   * Get payment by ID
-   * 
-   * @param id - Payment ID
-   * @returns Payment
-   * 
-   * @example
-   * ```typescript
-   * const payment = await api.pay.getPayment('pay_abc123');
-   * ```
-   */
-  async getPayment(id: string): Promise<ApiResponse<Payment>> {
-    return this.client.get<Payment>(`/bridge-payment/payments/${id}`);
+  private get<T = any>(path: string, params?: PaginationParams): Promise<ApiResponse<T>> {
+    return this.client.get<T>(this.path(path), { params });
   }
 
-  // ============================================================================
-  // PAYMENT METHODS
-  // ============================================================================
-
-  /**
-   * List payment methods
-   * 
-   * @param params - Pagination parameters
-   * @returns List of payment methods
-   * 
-   * @example
-   * ```typescript
-   * const methods = await api.pay.listMethods();
-   * ```
-   */
-  async listMethods(params?: PaginationParams): Promise<ApiResponse<PaymentMethod[]>> {
-    return this.client.get<PaymentMethod[]>('/bridge-payment/payment-methods', { params });
+  private post<T = any>(path: string, data?: any): Promise<ApiResponse<T>> {
+    return this.client.post<T>(this.path(path), data || {});
   }
 
-  /**
-   * Get payment method by ID
-   * 
-   * @param id - Payment method ID
-   * @returns Payment method
-   * 
-   * @example
-   * ```typescript
-   * const method = await api.pay.getMethod('pm_abc123');
-   * ```
-   */
-  async getMethod(id: string): Promise<ApiResponse<PaymentMethod>> {
-    return this.client.get<PaymentMethod>(`/bridge-payment/payment-methods/${id}`);
+  private put<T = any>(path: string, data: any): Promise<ApiResponse<T>> {
+    return this.client.put<T>(this.path(path), data);
   }
 
-  /**
-   * Update payment method
-   *
-   * @param id - Payment method ID
-   * @param data - Update data
-   * @returns Updated payment method
-   *
-   * @example
-   * ```typescript
-   * await api.pay.updateMethod('pm_abc123', { is_default: true });
-   * ```
-   */
-  async updateMethod(id: string, data: UpdatePaymentMethodRequest): Promise<ApiResponse<PaymentMethod>> {
-    return this.client.put<PaymentMethod>(`/bridge-payment/payment-methods/${id}`, data);
+  private patch<T = any>(path: string, data: any): Promise<ApiResponse<T>> {
+    return this.client.patch<T>(this.path(path), data);
   }
 
-  /**
-   * Delete payment method
-   *
-   * @param id - Payment method ID
-   *
-   * @example
-   * ```typescript
-   * await api.pay.deleteMethod('pm_abc123');
-   * ```
-   */
-  async deleteMethod(id: string): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/bridge-payment/payment-methods/${id}`);
+  private delete<T = any>(path: string): Promise<ApiResponse<T>> {
+    return this.client.delete<T>(this.path(path));
   }
 
-  // ============================================================================
-  // ADDRESSES
-  // ============================================================================
-
-  /**
-   * Create address
-   *
-   * @param data - Address data
-   * @returns Created address
-   *
-   * @example
-   * ```typescript
-   * const address = await api.pay.createAddress({
-   *   address_type: 'billing',
-   *   name: 'John Doe',
-   *   line1: '123 Main St',
-   *   city: 'New York',
-   *   postal_code: '10001',
-   *   country: 'US'
-   * });
-   * ```
-   */
-  async createAddress(data: CreateAddressRequest): Promise<ApiResponse<Address>> {
-    return this.client.post<Address>('/bridge-payment/addresses', data);
+  createIntent(data: CreatePaymentIntentRequest): Promise<ApiResponse<PaymentIntent>> {
+    return this.post<PaymentIntent>('/payments/intents', data);
   }
 
-  /**
-   * List addresses
-   *
-   * @param params - Pagination parameters
-   * @returns List of addresses
-   *
-   * @example
-   * ```typescript
-   * const addresses = await api.pay.listAddresses();
-   * ```
-   */
-  async listAddresses(params?: PaginationParams): Promise<ApiResponse<Address[]>> {
-    return this.client.get<Address[]>('/bridge-payment/addresses', { params });
+  getIntent(id: string): Promise<ApiResponse<PaymentIntent>> {
+    return this.get<PaymentIntent>(`/payments/intents/${id}`);
   }
 
-  /**
-   * Get address by ID
-   *
-   * @param id - Address ID
-   * @returns Address
-   *
-   * @example
-   * ```typescript
-   * const address = await api.pay.getAddress('addr_abc123');
-   * ```
-   */
-  async getAddress(id: string): Promise<ApiResponse<Address>> {
-    return this.client.get<Address>(`/bridge-payment/addresses/${id}`);
+  updateIntent(id: string, data: Record<string, any>): Promise<ApiResponse<PaymentIntent>> {
+    return this.patch<PaymentIntent>(`/payments/intents/${id}`, data);
   }
 
-  /**
-   * Update address
-   *
-   * @param id - Address ID
-   * @param data - Update data
-   * @returns Updated address
-   *
-   * @example
-   * ```typescript
-   * await api.pay.updateAddress('addr_abc123', { is_default: true });
-   * ```
-   */
-  async updateAddress(id: string, data: UpdateAddressRequest): Promise<ApiResponse<Address>> {
-    return this.client.put<Address>(`/bridge-payment/addresses/${id}`, data);
+  confirmIntent(id: string, data?: Record<string, any>): Promise<ApiResponse<PaymentIntent>> {
+    return this.post<PaymentIntent>(`/payments/intents/${id}/confirm`, data);
   }
 
-  /**
-   * Delete address
-   *
-   * @param id - Address ID
-   *
-   * @example
-   * ```typescript
-   * await api.pay.deleteAddress('addr_abc123');
-   * ```
-   */
-  async deleteAddress(id: string): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/bridge-payment/addresses/${id}`);
+  syncIntent(id: string, data?: Record<string, any>): Promise<ApiResponse<PaymentIntent>> {
+    return this.post<PaymentIntent>(`/payments/intents/${id}/sync`, data);
   }
 
-  // ============================================================================
-  // CUSTOMERS
-  // ============================================================================
-
-  /**
-   * Create customer
-   *
-   * @param data - Customer data
-   * @returns Created customer
-   *
-   * @example
-   * ```typescript
-   * const customer = await api.pay.createCustomer({
-   *   email: 'user@example.com',
-   *   name: 'John Doe'
-   * });
-   * ```
-   */
-  async createCustomer(data: CreateCustomerRequest): Promise<ApiResponse<Customer>> {
-    return this.client.post<Customer>('/bridge-payment/customers', data);
+  listPayments(params?: PaginationParams): Promise<ApiResponse<Payment[]>> {
+    return this.get<Payment[]>('/payments', params);
   }
 
-  /**
-   * List customers
-   *
-   * @param params - Pagination parameters
-   * @returns List of customers
-   *
-   * @example
-   * ```typescript
-   * const customers = await api.pay.listCustomers();
-   * ```
-   */
-  async listCustomers(params?: PaginationParams): Promise<ApiResponse<Customer[]>> {
-    return this.client.get<Customer[]>('/bridge-payment/customers', { params });
+  getPayment(id: string): Promise<ApiResponse<Payment>> {
+    return this.get<Payment>(`/payments/${id}`);
   }
 
-  /**
-   * Get customer by ID
-   *
-   * @param id - Customer ID
-   * @returns Customer
-   *
-   * @example
-   * ```typescript
-   * const customer = await api.pay.getCustomer('cus_abc123');
-   * ```
-   */
-  async getCustomer(id: string): Promise<ApiResponse<Customer>> {
-    return this.client.get<Customer>(`/bridge-payment/customers/${id}`);
+  cancelPayment(id: string, data?: Record<string, any>): Promise<ApiResponse<Payment>> {
+    return this.post<Payment>(`/payments/${id}/cancel`, data);
   }
 
-  /**
-   * Update customer
-   *
-   * @param id - Customer ID
-   * @param data - Update data
-   * @returns Updated customer
-   *
-   * @example
-   * ```typescript
-   * await api.pay.updateCustomer('cus_abc123', { name: 'Jane Doe' });
-   * ```
-   */
-  async updateCustomer(id: string, data: UpdateCustomerRequest): Promise<ApiResponse<Customer>> {
-    return this.client.put<Customer>(`/bridge-payment/customers/${id}`, data);
+  capturePayment(id: string, data?: Record<string, any>): Promise<ApiResponse<Payment>> {
+    return this.post<Payment>(`/payments/${id}/capture`, data);
   }
 
-  /**
-   * Delete customer
-   *
-   * @param id - Customer ID
-   *
-   * @example
-   * ```typescript
-   * await api.pay.deleteCustomer('cus_abc123');
-   * ```
-   */
-  async deleteCustomer(id: string): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/bridge-payment/customers/${id}`);
+  listMethods(params?: PaginationParams): Promise<ApiResponse<PaymentMethod[]>> {
+    return this.get<PaymentMethod[]>('/payment-methods', params);
   }
 
-  // ============================================================================
-  // SUBSCRIPTIONS
-  // ============================================================================
-
-  /**
-   * Create subscription
-   *
-   * @param data - Subscription data
-   * @returns Created subscription
-   *
-   * @example
-   * ```typescript
-   * const subscription = await api.pay.createSubscription({
-   *   customer_id: 'cus_abc123',
-   *   payment_method_id: 'pm_abc123',
-   *   product_id: 'prod_premium',
-   *   trial_days: 14
-   * });
-   * ```
-   */
-  async createSubscription(data: CreateSubscriptionRequest): Promise<ApiResponse<Subscription>> {
-    return this.client.post<Subscription>('/bridge-payment/subscriptions', data);
+  createMethod(data: Record<string, any>): Promise<ApiResponse<PaymentMethod>> {
+    return this.post<PaymentMethod>('/payment-methods', data);
   }
 
-  /**
-   * List subscriptions
-   *
-   * @param params - Pagination parameters
-   * @returns List of subscriptions
-   *
-   * @example
-   * ```typescript
-   * const subscriptions = await api.pay.listSubscriptions();
-   * ```
-   */
-  async listSubscriptions(params?: PaginationParams): Promise<ApiResponse<Subscription[]>> {
-    return this.client.get<Subscription[]>('/bridge-payment/subscriptions', { params });
+  createMethodDirect(data: Record<string, any>): Promise<ApiResponse<PaymentMethod>> {
+    return this.post<PaymentMethod>('/payment-methods/direct', data);
   }
 
-  /**
-   * Get subscription by ID
-   *
-   * @param id - Subscription ID
-   * @returns Subscription
-   *
-   * @example
-   * ```typescript
-   * const subscription = await api.pay.getSubscription('sub_abc123');
-   * ```
-   */
-  async getSubscription(id: string): Promise<ApiResponse<Subscription>> {
-    return this.client.get<Subscription>(`/bridge-payment/subscriptions/${id}`);
+  getMethod(id: string): Promise<ApiResponse<PaymentMethod>> {
+    return this.get<PaymentMethod>(`/payment-methods/${id}`);
   }
 
-  /**
-   * Cancel subscription
-   *
-   * @param id - Subscription ID
-   * @param data - Cancellation options
-   * @returns Updated subscription
-   *
-   * @example
-   * ```typescript
-   * await api.pay.cancelSubscription('sub_abc123', {
-   *   cancel_at_period_end: true,
-   *   reason: 'User requested'
-   * });
-   * ```
-   */
-  async cancelSubscription(id: string, data?: CancelSubscriptionRequest): Promise<ApiResponse<Subscription>> {
-    return this.client.post<Subscription>(`/bridge-payment/subscriptions/${id}/cancel`, data || {});
+  listMethodsByCustomer(customerId: string, params?: PaginationParams): Promise<ApiResponse<PaymentMethod[]>> {
+    return this.get<PaymentMethod[]>(`/payment-methods/customer/${customerId}`, params);
   }
 
-  // ============================================================================
-  // ORGANIZATIONS
-  // ============================================================================
-
-  /**
-   * Create organization
-   *
-   * @param data - Organization data
-   * @returns Created organization
-   *
-   * @example
-   * ```typescript
-   * const org = await api.pay.createOrganization({
-   *   name: 'Acme Corp',
-   *   business_email: 'billing@acme.com'
-   * });
-   * ```
-   */
-  async createOrganization(data: CreateOrganizationRequest): Promise<ApiResponse<Organization>> {
-    return this.client.post<Organization>('/bridge-payment/organizations', data);
+  updateMethod(id: string, data: UpdatePaymentMethodRequest): Promise<ApiResponse<PaymentMethod>> {
+    return this.put<PaymentMethod>(`/payment-methods/${id}`, data);
   }
 
-  /**
-   * List organizations
-   *
-   * @param params - Pagination parameters
-   * @returns List of organizations
-   *
-   * @example
-   * ```typescript
-   * const orgs = await api.pay.listOrganizations();
-   * ```
-   */
-  async listOrganizations(params?: PaginationParams): Promise<ApiResponse<Organization[]>> {
-    return this.client.get<Organization[]>('/bridge-payment/organizations', { params });
+  deleteMethod(id: string): Promise<ApiResponse<void>> {
+    return this.delete<void>(`/payment-methods/${id}`);
   }
 
-  /**
-   * Get organization by ID
-   *
-   * @param id - Organization ID
-   * @returns Organization
-   *
-   * @example
-   * ```typescript
-   * const org = await api.pay.getOrganization('org_abc123');
-   * ```
-   */
-  async getOrganization(id: string): Promise<ApiResponse<Organization>> {
-    return this.client.get<Organization>(`/bridge-payment/organizations/${id}`);
+  updateMethodBillingAddress(id: string, billingAddressId: string | null): Promise<ApiResponse<PaymentMethod>> {
+    return this.patch<PaymentMethod>(`/payment-methods/${id}/billing-address`, { billing_address_id: billingAddressId });
   }
 
-  /**
-   * Update organization
-   *
-   * @param id - Organization ID
-   * @param data - Update data
-   * @returns Updated organization
-   *
-   * @example
-   * ```typescript
-   * await api.pay.updateOrganization('org_abc123', { name: 'Acme Inc' });
-   * ```
-   */
-  async updateOrganization(id: string, data: UpdateOrganizationRequest): Promise<ApiResponse<Organization>> {
-    return this.client.put<Organization>(`/bridge-payment/organizations/${id}`, data);
+  createAddress(data: CreateAddressRequest): Promise<ApiResponse<Address>> {
+    return this.post<Address>('/addresses', data);
   }
 
-  /**
-   * Delete organization
-   *
-   * @param id - Organization ID
-   *
-   * @example
-   * ```typescript
-   * await api.pay.deleteOrganization('org_abc123');
-   * ```
-   */
-  async deleteOrganization(id: string): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/bridge-payment/organizations/${id}`);
+  listAddresses(params?: PaginationParams): Promise<ApiResponse<Address[]>> {
+    return this.get<Address[]>('/addresses', params);
   }
 
-  // ============================================================================
-  // ORGANIZATION MEMBERS
-  // ============================================================================
-
-  /**
-   * List organization members
-   *
-   * @param organizationId - Organization ID
-   * @param params - Pagination parameters
-   * @returns List of organization members
-   *
-   * @example
-   * ```typescript
-   * const members = await api.pay.listOrgMembers('org_abc123');
-   * ```
-   */
-  async listOrgMembers(organizationId: string, params?: PaginationParams): Promise<ApiResponse<OrganizationMember[]>> {
-    return this.client.get<OrganizationMember[]>(`/bridge-payment/organizations/${organizationId}/members`, { params });
+  getAddress(id: string): Promise<ApiResponse<Address>> {
+    return this.get<Address>(`/addresses/${id}`);
   }
 
-  /**
-   * Add organization member
-   *
-   * @param organizationId - Organization ID
-   * @param data - Member data
-   * @returns Created member
-   *
-   * @example
-   * ```typescript
-   * await api.pay.addOrgMember('org_abc123', {
-   *   email: 'user@example.com',
-   *   role: 'admin'
-   * });
-   * ```
-   */
-  async addOrgMember(organizationId: string, data: AddOrganizationMemberRequest): Promise<ApiResponse<OrganizationMember>> {
-    return this.client.post<OrganizationMember>(`/bridge-payment/organizations/${organizationId}/members`, data);
+  updateAddress(id: string, data: UpdateAddressRequest): Promise<ApiResponse<Address>> {
+    return this.put<Address>(`/addresses/${id}`, data);
   }
 
-  /**
-   * Update organization member role
-   *
-   * @param organizationId - Organization ID
-   * @param memberId - Member ID
-   * @param data - Update data
-   * @returns Updated member
-   *
-   * @example
-   * ```typescript
-   * await api.pay.updateOrgMemberRole('org_abc123', 'member_xyz', {
-   *   role: 'billing'
-   * });
-   * ```
-   */
-  async updateOrgMemberRole(organizationId: string, memberId: string, data: UpdateOrganizationMemberRoleRequest): Promise<ApiResponse<OrganizationMember>> {
-    return this.client.put<OrganizationMember>(`/bridge-payment/organizations/${organizationId}/members/${memberId}`, data);
+  deleteAddress(id: string): Promise<ApiResponse<void>> {
+    return this.delete<void>(`/addresses/${id}`);
   }
 
-  /**
-   * Remove organization member
-   *
-   * @param organizationId - Organization ID
-   * @param memberId - Member ID
-   *
-   * @example
-   * ```typescript
-   * await api.pay.removeOrgMember('org_abc123', 'member_xyz');
-   * ```
-   */
-  async removeOrgMember(organizationId: string, memberId: string): Promise<ApiResponse<void>> {
-    return this.client.delete<void>(`/bridge-payment/organizations/${organizationId}/members/${memberId}`);
+  createCustomer(data: CreateCustomerRequest): Promise<ApiResponse<Customer>> {
+    return this.post<Customer>('/customers', data);
   }
 
-  /**
-   * Leave organization (current user)
-   *
-   * @param organizationId - Organization ID
-   *
-   * @example
-   * ```typescript
-   * await api.pay.leaveOrganization('org_abc123');
-   * ```
-   */
-  async leaveOrganization(organizationId: string): Promise<ApiResponse<void>> {
-    return this.client.post<void>(`/bridge-payment/organizations/${organizationId}/leave`, {});
+  listCustomers(params?: PaginationParams): Promise<ApiResponse<Customer[]>> {
+    return this.get<Customer[]>('/customers', params);
   }
 
-  // ============================================================================
-  // GUEST CONVERSION
-  // ============================================================================
-
-  /**
-   * Convert guest payments to authenticated user
-   *
-   * @param data - Conversion data
-   * @returns Conversion result
-   *
-   * @example
-   * ```typescript
-   * const result = await api.pay.convertGuest({
-   *   guest_email: 'guest@example.com'
-   * });
-   * console.log(`Converted ${result.data.payments_count} payments`);
-   * ```
-   */
-  async convertGuest(data: ConvertGuestToUserRequest): Promise<ApiResponse<ConvertGuestToUserResponse>> {
-    return this.client.post<ConvertGuestToUserResponse>('/bridge-payment/guest/convert', data);
+  getCustomer(id: string): Promise<ApiResponse<Customer>> {
+    return this.get<Customer>(`/customers/${id}`);
   }
+
+  updateCustomer(id: string, data: UpdateCustomerRequest): Promise<ApiResponse<Customer>> {
+    return this.put<Customer>(`/customers/${id}`, data);
+  }
+
+  deleteCustomer(id: string): Promise<ApiResponse<void>> {
+    return this.delete<void>(`/customers/${id}`);
+  }
+
+  createSubscription(data: CreateSubscriptionRequest): Promise<ApiResponse<Subscription>> {
+    return this.post<Subscription>('/subscriptions', data);
+  }
+
+  listSubscriptions(params?: PaginationParams): Promise<ApiResponse<Subscription[]>> {
+    return this.get<Subscription[]>('/subscriptions', params);
+  }
+
+  getSubscription(id: string): Promise<ApiResponse<Subscription>> {
+    return this.get<Subscription>(`/subscriptions/${id}`);
+  }
+
+  updateSubscription(id: string, data: Record<string, any>): Promise<ApiResponse<Subscription>> {
+    return this.patch<Subscription>(`/subscriptions/${id}`, data);
+  }
+
+  cancelSubscription(id: string, data?: CancelSubscriptionRequest): Promise<ApiResponse<Subscription>> {
+    return this.post<Subscription>(`/subscriptions/${id}/cancel`, data || {});
+  }
+
+  updateSubscriptionBillingAddress(id: string, billingAddressId: string | null): Promise<ApiResponse<Subscription>> {
+    return this.patch<Subscription>(`/subscriptions/${id}/billing-address`, { billing_address_id: billingAddressId });
+  }
+
+  listProducts(params?: PaginationParams): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/products', params);
+  }
+
+  getProduct(id: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/products/${id}`);
+  }
+
+  listReceipts(params?: PaginationParams): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/receipts', params);
+  }
+
+  getReceipt(id: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/receipts/${id}`);
+  }
+
+  listInvoices(params?: PaginationParams): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/invoices', params);
+  }
+
+  getInvoice(id: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/invoices/${id}`);
+  }
+
+  createInvoice(data: Record<string, any>): Promise<ApiResponse<any>> {
+    return this.post<any>('/invoices', data);
+  }
+
+  listOrders(params?: PaginationParams): Promise<ApiResponse<any[]>> {
+    return this.get<any[]>('/orders', params);
+  }
+
+  getOrder(id: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/orders/${id}`);
+  }
+
+  createOrder(data: Record<string, any>): Promise<ApiResponse<any>> {
+    return this.post<any>('/orders', data);
+  }
+
+  createOrganization(data: CreateOrganizationRequest): Promise<ApiResponse<Organization>> {
+    return this.post<Organization>('/organizations', data);
+  }
+
+  listOrganizations(params?: PaginationParams): Promise<ApiResponse<Organization[]>> {
+    return this.get<Organization[]>('/organizations', params);
+  }
+
+  getOrganization(id: string): Promise<ApiResponse<Organization>> {
+    return this.get<Organization>(`/organizations/${id}`);
+  }
+
+  updateOrganization(id: string, data: UpdateOrganizationRequest): Promise<ApiResponse<Organization>> {
+    return this.put<Organization>(`/organizations/${id}`, data);
+  }
+
+  deleteOrganization(id: string): Promise<ApiResponse<void>> {
+    return this.delete<void>(`/organizations/${id}`);
+  }
+
+  listOrgMembers(organizationId: string, params?: PaginationParams): Promise<ApiResponse<OrganizationMember[]>> {
+    return this.get<OrganizationMember[]>(`/organizations/${organizationId}/members`, params);
+  }
+
+  addOrgMember(organizationId: string, data: AddOrganizationMemberRequest): Promise<ApiResponse<OrganizationMember>> {
+    return this.post<OrganizationMember>(`/organizations/${organizationId}/members`, data);
+  }
+
+  updateOrgMemberRole(organizationId: string, memberId: string, data: UpdateOrganizationMemberRoleRequest): Promise<ApiResponse<OrganizationMember>> {
+    return this.put<OrganizationMember>(`/organizations/${organizationId}/members/${memberId}`, data);
+  }
+
+  removeOrgMember(organizationId: string, memberId: string): Promise<ApiResponse<void>> {
+    return this.delete<void>(`/organizations/${organizationId}/members/${memberId}`);
+  }
+
+  leaveOrganization(organizationId: string): Promise<ApiResponse<void>> {
+    return this.post<void>(`/organizations/${organizationId}/leave`, {});
+  }
+
+  convertGuest(data: ConvertGuestToUserRequest): Promise<ApiResponse<ConvertGuestToUserResponse>> {
+    return this.post<ConvertGuestToUserResponse>('/guest/convert', data);
+  }
+
+  previewGuest(email: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/guest-conversion/preview-guest/${encodeURIComponent(email)}`);
+  }
+
+  getMyGuestData(): Promise<ApiResponse<any>> {
+    return this.get<any>('/guest-conversion/my-guest-data');
+  }
+
+  accountBalance = {
+    mine: (params?: PaginationParams) => this.get('/account-balance/me/balances', params),
+    user: (userId: string, params?: PaginationParams) => this.get(`/account-balance/users/${userId}/balances`, params),
+    myTotal: (params?: PaginationParams) => this.get('/account-balance/me/total', params),
+    userTotal: (userId: string, params?: PaginationParams) => this.get(`/account-balance/users/${userId}/total`, params),
+    get: (id: string) => this.get(`/account-balance/${id}`),
+    create: (data: Record<string, any>) => this.post('/account-balance', data),
+    update: (id: string, data: Record<string, any>) => this.put(`/account-balance/${id}`, data),
+    delete: (id: string) => this.delete(`/account-balance/${id}`),
+    credit: (id: string, data: Record<string, any>) => this.post(`/account-balance/${id}/credit`, data),
+    debit: (id: string, data: Record<string, any>) => this.post(`/account-balance/${id}/debit`, data),
+    transactions: (id: string, params?: PaginationParams) => this.get(`/account-balance/${id}/transactions`, params),
+    statistics: (id: string, params?: PaginationParams) => this.get(`/account-balance/${id}/statistics`, params),
+    expiring: (params?: PaginationParams) => this.get('/account-balance/expiring', params),
+  };
+
+  billingSchedules = {
+    mine: (params?: PaginationParams) => this.get('/billing-schedules/me', params),
+    active: (params?: PaginationParams) => this.get('/billing-schedules/active', params),
+    due: (params?: PaginationParams) => this.get('/billing-schedules/due', params),
+    user: (userId: string, params?: PaginationParams) => this.get(`/billing-schedules/users/${userId}`, params),
+    get: (id: string) => this.get(`/billing-schedules/${id}`),
+    create: (data: Record<string, any>) => this.post('/billing-schedules', data),
+    update: (id: string, data: Record<string, any>) => this.put(`/billing-schedules/${id}`, data),
+    delete: (id: string) => this.delete(`/billing-schedules/${id}`),
+    pause: (id: string) => this.post(`/billing-schedules/${id}/pause`, {}),
+    resume: (id: string) => this.post(`/billing-schedules/${id}/resume`, {}),
+    cancel: (id: string, data?: Record<string, any>) => this.post(`/billing-schedules/${id}/cancel`, data),
+    executions: (id: string, params?: PaginationParams) => this.get(`/billing-schedules/${id}/executions`, params),
+    statistics: (id: string, params?: PaginationParams) => this.get(`/billing-schedules/${id}/statistics`, params),
+    failedExecutions: (params?: PaginationParams) => this.get('/billing-schedules/executions/failed', params),
+  };
+
+  costTracking = {
+    productCosts: (productId: string, params?: PaginationParams) => this.get(`/cost-tracking/products/${productId}/costs`, params),
+    activeProductCost: (productId: string, params?: PaginationParams) => this.get(`/cost-tracking/products/${productId}/costs/active`, params),
+    totalProductCost: (productId: string, params?: PaginationParams) => this.get(`/cost-tracking/products/${productId}/costs/total`, params),
+    createProductCost: (data: Record<string, any>) => this.post('/cost-tracking/products/costs', data),
+    updateProductCost: (id: string, data: Record<string, any>) => this.put(`/cost-tracking/products/costs/${id}`, data),
+    deleteProductCost: (id: string) => this.delete(`/cost-tracking/products/costs/${id}`),
+    closeProductCost: (id: string, data?: Record<string, any>) => this.post(`/cost-tracking/products/costs/${id}/close`, data),
+    orderCosts: (orderId: string, params?: PaginationParams) => this.get(`/cost-tracking/orders/${orderId}/costs`, params),
+    orderCost: (orderId: string, params?: PaginationParams) => this.get(`/cost-tracking/orders/${orderId}/cost`, params),
+    totalOrderCost: (orderId: string) => this.get(`/cost-tracking/orders/${orderId}/costs/total`),
+    createOrderCost: (data: Record<string, any>) => this.post('/cost-tracking/orders/costs', data),
+    subscriptionCost: (subscriptionId: string, params?: PaginationParams) => this.get(`/cost-tracking/subscriptions/${subscriptionId}/cost`, params),
+    profitability: (params?: PaginationParams) => this.get('/cost-tracking/analytics/profitability', params),
+    lowMargins: (params?: PaginationParams) => this.get('/cost-tracking/analytics/low-margins', params),
+    losses: (params?: PaginationParams) => this.get('/cost-tracking/analytics/losses', params),
+    topProfitable: (params?: PaginationParams) => this.get('/cost-tracking/analytics/top-profitable', params),
+  };
+
+  admin = {
+    overview: () => this.get('/admin/overview'),
+    stats: (params?: PaginationParams) => this.get('/admin/stats', params),
+    payments: (params?: PaginationParams) => this.get('/admin/payments', params),
+    cache: () => this.get('/admin/cache'),
+    clearCache: () => this.delete('/admin/cache'),
+    health: () => this.get('/admin/health'),
+    testNotification: (data?: Record<string, any>) => this.post('/admin/test-notification', data),
+    notificationConfig: () => this.get('/admin/notification-config'),
+    updateNotificationConfig: (data: Record<string, any>) => this.put('/admin/notification-config', data),
+    products: (params?: PaginationParams) => this.get('/admin/products', params),
+    syncProducts: (data?: Record<string, any>) => this.post('/admin/products/sync', data),
+    subscriptions: (params?: PaginationParams) => this.get('/admin/subscriptions', params),
+    memberships: (params?: PaginationParams) => this.get('/admin/memberships', params),
+    applePayDomains: (params?: PaginationParams) => this.get('/admin/apple-pay-domains', params),
+    addApplePayDomain: (data: Record<string, any>) => this.post('/admin/apple-pay-domains', data),
+    deleteApplePayDomain: (domain: string) => this.delete(`/admin/apple-pay-domains/${encodeURIComponent(domain)}`),
+  };
+
+  webhooks = {
+    list: (params?: PaginationParams) => this.get('/webhooks', params),
+    create: (data: Record<string, any>) => this.post('/webhooks', data),
+    get: (id: string) => this.get(`/webhooks/${id}`),
+    update: (id: string, data: Record<string, any>) => this.put(`/webhooks/${id}`, data),
+    delete: (id: string) => this.delete(`/webhooks/${id}`),
+    test: (id: string, data?: Record<string, any>) => this.post(`/webhooks/${id}/test`, data),
+    deliveries: (id: string, params?: PaginationParams) => this.get(`/webhooks/${id}/deliveries`, params),
+  };
+
+  externalWebhooks = {
+    receive: (provider: string, data: Record<string, any>) => this.post(`/external-webhooks/${provider}`, data),
+    stripe: (data: Record<string, any>) => this.post('/external-webhooks/stripe', data),
+    paypal: (data: Record<string, any>) => this.post('/external-webhooks/paypal', data),
+    polar: (data: Record<string, any>) => this.post('/external-webhooks/polar', data),
+    azul: (data: Record<string, any>) => this.post('/external-webhooks/azul', data),
+  };
+
+  memberships = {
+    tiers: (params?: PaginationParams) => this.get('/memberships/tiers', params),
+    mine: (params?: PaginationParams) => this.get('/memberships/me', params),
+    list: (params?: PaginationParams) => this.get('/memberships', params),
+    get: (id: string) => this.get(`/memberships/${id}`),
+    cancel: (id: string, data?: Record<string, any>) => this.post(`/memberships/${id}/cancel`, data),
+    user: (userId: string, params?: PaginationParams) => this.get(`/memberships/users/${userId}`, params),
+    access: (data: Record<string, any>) => this.post('/memberships/access', data),
+    projects: (params?: PaginationParams) => this.get('/memberships/projects', params),
+  };
+
+  projects = {
+    list: (params?: PaginationParams) => this.get('/projects', params),
+    create: (data: Record<string, any>) => this.post('/projects', data),
+    get: (id: string) => this.get(`/projects/${id}`),
+    update: (id: string, data: Record<string, any>) => this.put(`/projects/${id}`, data),
+    delete: (id: string) => this.delete(`/projects/${id}`),
+    invites: (projectId: string, params?: PaginationParams) => this.get(`/projects/${projectId}/invites`, params),
+    invite: (projectId: string, data: Record<string, any>) => this.post(`/projects/${projectId}/invites`, data),
+    acceptInvite: (token: string, data?: Record<string, any>) => this.post(`/projects/invites/${token}/accept`, data),
+  };
+
+  moduleHub = {
+    plugins: (params?: PaginationParams) => this.get('/module-hub/plugins', params),
+    plugin: (id: string) => this.get(`/module-hub/plugins/${id}`),
+    install: (id: string, data?: Record<string, any>) => this.post(`/module-hub/plugins/${id}/install`, data),
+    uninstall: (id: string, data?: Record<string, any>) => this.post(`/module-hub/plugins/${id}/uninstall`, data),
+  };
+
+  renewals = {
+    list: (params?: PaginationParams) => this.get('/renewals', params),
+    get: (id: string) => this.get(`/renewals/${id}`),
+    run: (id: string, data?: Record<string, any>) => this.post(`/renewals/${id}/run`, data),
+  };
+
+  hosted = {
+    meUrl: () => this.url('/pages/me'),
+    payUrl: (params?: PaginationParams) => this.url('/pages/pay', params),
+    loginUrl: (params?: PaginationParams) => this.url('/pages/login', params),
+    portalUrl: (params?: PaginationParams) => this.url('/pages/portal', params),
+    subscriptionsUrl: (params?: PaginationParams) => this.url('/pages/subscriptions', params),
+    paymentMethodsUrl: (params?: PaginationParams) => this.url('/pages/payment-methods', params),
+    addressesUrl: (params?: PaginationParams) => this.url('/pages/addresses', params),
+    invoicesUrl: (params?: PaginationParams) => this.url('/pages/invoices', params),
+    embedPayUrl: (params?: PaginationParams) => this.url('/embed/pay', params),
+    embedLoginUrl: (params?: PaginationParams) => this.url('/embed/login', params),
+    embedPortalUrl: (params?: PaginationParams) => this.url('/embed/portal', params),
+    embedSubscriptionsUrl: (params?: PaginationParams) => this.url('/embed/subscriptions', params),
+    embedPaymentMethodsUrl: (params?: PaginationParams) => this.url('/embed/payment-methods', params),
+    embedButtonUrl: (params?: PaginationParams) => this.url('/embed/button', params),
+    embedPaymentsUrl: (params?: PaginationParams) => this.url('/embed/payments', params),
+  };
+
+  callbacks = {
+    azulApproved: (params?: PaginationParams) => this.get('/callbacks/azul/approved', params),
+    azulDeclined: (params?: PaginationParams) => this.get('/callbacks/azul/declined', params),
+    azulCancelled: (params?: PaginationParams) => this.get('/callbacks/azul/cancelled', params),
+    polarReturn: (params?: PaginationParams) => this.get('/callbacks/polar/return', params),
+    health: () => this.get('/callbacks/health'),
+  };
+
+  health = {
+    basic: () => this.get('/health'),
+    detailed: () => this.get('/health/detailed'),
+    database: () => this.get('/health/database'),
+    providers: () => this.get('/health/providers'),
+    flowless: () => this.get('/health/flowless'),
+    ready: () => this.get('/health/ready'),
+    live: () => this.get('/health/live'),
+    metrics: () => this.get('/health/metrics'),
+  };
 }
-

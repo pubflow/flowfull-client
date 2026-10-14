@@ -19,6 +19,9 @@ import { SessionManager } from './session-manager';
 import { RequestHandler } from './request-handler';
 import { QueryBuilder } from './query-builder';
 import { PaymentsHelper } from '../helpers/payments';
+import { FormsHelper } from '../helpers/forms';
+import { BlogHelper } from '../helpers/blog';
+import { OnboardingHelper } from '../helpers/onboarding';
 
 /**
  * Flowfull client class
@@ -88,7 +91,31 @@ export class FlowfullClient {
    * ```
    */
   get pay(): PaymentsHelper {
-    return new PaymentsHelper(this);
+    return new PaymentsHelper(this.forBackend(this.config.paymentsUrl), this.config.modulePrefixes?.payments || '/bridge-payment');
+  }
+
+  get forms(): FormsHelper {
+    return new FormsHelper(this.forBackend(this.config.formsUrl), this.config.modulePrefixes?.forms || '/api/v1');
+  }
+
+  get blog(): BlogHelper {
+    return new BlogHelper(
+      this.forBackend(this.config.flowlessUrl || this.config.apiUrl),
+      this.config.modulePrefixes?.blog || '/api/v1/posts',
+      this.config.modulePrefixes?.postTypes || '/api/v1/post-types',
+    );
+  }
+
+  get onboarding(): OnboardingHelper {
+    return new OnboardingHelper(this.forBackend(this.config.flowlessUrl || this.config.apiUrl), this.config.modulePrefixes?.onboarding || '/api/v1/onboarding');
+  }
+
+  private forBackend(baseUrl?: string): FlowfullClient {
+    if (!baseUrl || baseUrl === this.baseUrl) {
+      return this;
+    }
+
+    return new FlowfullClient(baseUrl, this.config);
   }
 
   /**
@@ -512,4 +539,3 @@ export class FlowfullClient {
     return { ...this.config };
   }
 }
-
